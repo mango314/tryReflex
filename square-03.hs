@@ -9,6 +9,8 @@ import Data.Text (Text, pack)
 -- (=:) :: k -> a -> Map k a
 -- ($) :: (a -> b) -> a -> b
 
+div :: MonadWidget t m => m a -> m a
+div = el "div"
 
 css :: Map Text Text
 css = ( "style" =: "color:#EB723C; font-family: Helvetica;" )
@@ -40,12 +42,17 @@ svg' = do
   return ()
 
 cssSvg :: Map Text Text
-cssSvg = ( "style" =: "width:300px; height:150px; background-color:#F0F0F0;" )
+cssSvg = ( "style" =: "width:300px; height:150px; background-color:#F0F0F0; margin-top:5px;" )
 
 svgAttr :: MonadWidget t m => Map Text Text -> m ()
 svgAttr attrs =  do
   element "svg" ( def & namespace .~ Just "http://www.w3.org/2000/svg" & initialAttributes .~ mapKeys (AttributeName Nothing) attrs ) blank
   return ()
+
+--svgDyn :: MonadWidget t m => Dynamic t (Map Text Text) -> m a -> m a
+--svgDyn attrs = do
+--  snd <$> element "svg" ( def & namespace .~ Just "http://www.w3.org/2000/svg" & initialAttributes .~ mapKeys (AttributeName Nothing) attrs ) blank
+--  return ()
 
 
 
@@ -53,5 +60,11 @@ svgAttr attrs =  do
 main = mainWidget $ do
   title "Create your own bar-chart!"
   p "type a list of numbers"
---  textbox
+  btn <- el "div" $ button "xyz"
+--dynText $ fmap (pack . show)  $    btn & count
+--el "div" $ ( dynText . fmap (pack . show) ) =<< ( btn >>= count )
+--dynText . fmap (pack . show) =<<
+--el "div" $ display =<< count =<< button "Click Me!"
+  el "div" $ display =<< count =<< btn
+  el "div" $ ( dynText . fmap (pack . show) ) =<< count =<< button "Click Me!"
   svgAttr cssSvg
