@@ -60,11 +60,9 @@ svgAttr attrs =  do
 main = mainWidget $ do
   title "Create your own bar-chart!"
   p "type a list of numbers"
-  btn <- el "div" $ button "xyz"
---dynText $ fmap (pack . show)  $    btn & count
---el "div" $ ( dynText . fmap (pack . show) ) =<< ( btn >>= count )
---dynText . fmap (pack . show) =<<
---el "div" $ display =<< count =<< button "Click Me!"
-  el "div" $ display =<< count =<< btn
+
+--INCORRECT
+--btn <- el "div" $ button "xyz"
+--el "div" $ display =<< count =<< btn
   el "div" $ ( dynText . fmap (pack . show) ) =<< count =<< button "Click Me!"
   svgAttr cssSvg
