@@ -61,15 +61,16 @@ button' t = do
   return $ domEvent Click e
 
 
-
 main = mainWidget $ do
   title "Create your own bar-chart!"
-  p "type a list of numbers"
+  el "del" $ p "type a list of numbers"
 
 --INCORRECT
 --btn <- el "div" $ button "xyz"
 --el "div" $ display =<< count =<< btn
-  let n = count =<< button "Click Me!"
-  el "div" $ ( dynText . fmap (pack . show) ) =<< n
-  el "div" $ ( dynText . fmap (pack . show) ) =<< n
+  el "div" $ do
+    btn <- button "Click Me!"
+    elAttr "span" ("style" =: "color:#A0A0A0;" ) $ text "How many times have we clicked? "
+    count (btn) >>= ( el "span" . dynText  . fmap (pack . show) )
+    return ()
   svgAttr cssSvg
