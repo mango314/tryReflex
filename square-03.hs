@@ -31,10 +31,8 @@ cssTxt = ( "style" =: "font-family: Courier;")
 -- (.~) :: ASetter s t a b -> b -> s -> t
 
 -- where do you put a style?
-svg :: MonadWidget t m => m ()
-svg =  do
-  element "svg" ( def & namespace .~ Just "http://www.w3.org/2000/svg") blank
-  return ()
+svg :: MonadWidget t m => m a -> m (Element EventResult (DomBuilderSpace m) t, a)
+svg =  element "svg" ( def & namespace .~ Just "http://www.w3.org/2000/svg")
 
 svg' :: MonadWidget t m => m ()
 svg' = do
@@ -54,6 +52,13 @@ svgAttr attrs =  do
 --  snd <$> element "svg" ( def & namespace .~ Just "http://www.w3.org/2000/svg" & initialAttributes .~ mapKeys (AttributeName Nothing) attrs ) blank
 --  return ()
 
+display' :: (PostBuild t m, DomBuilder t m, Show a) => Dynamic t a -> m ()
+display' = dynText . fmap (pack . show)
+
+button' :: DomBuilder t m => Text -> m (Event t ())
+button' t = do
+  (e, _) <- element "button" def $ text t
+  return $ domEvent Click e
 
 
 
@@ -64,5 +69,7 @@ main = mainWidget $ do
 --INCORRECT
 --btn <- el "div" $ button "xyz"
 --el "div" $ display =<< count =<< btn
-  el "div" $ ( dynText . fmap (pack . show) ) =<< count =<< button "Click Me!"
+  let n = count =<< button "Click Me!"
+  el "div" $ ( dynText . fmap (pack . show) ) =<< n
+  el "div" $ ( dynText . fmap (pack . show) ) =<< n
   svgAttr cssSvg
