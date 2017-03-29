@@ -77,7 +77,8 @@ cssButton :: Map Text Text
 cssButton = ("style" =: "width:75px;font-weight:bold;" )
 
 cssCircle :: Int -> Map Text Text
-cssCircle n = fromList [ ("cx", ( (pack. show) ( 25*(1 + (mod n 5) ) ) )), ("cy", "50"), ("r", "10"), ("fill", "#A0A0A0;"), ("stroke", "black") ]
+cssCircle n = fromList [ ("cx", ( (pack. show) ( 25*(1 + (mod n 5) ) ) )), ("cy", "50"), ("r", "10"), ("fill", "#A0A0A0"), ("stroke", "none") ]
+
 
 main = mainWidget $ do
   title "Create your own bar-chart!"
@@ -89,8 +90,10 @@ main = mainWidget $ do
 --http://stackoverflow.com/questions/2189452/when-to-use-margin-vs-padding-in-css
   el "div" $ do
     btn <- button' "Click Me!" $ Just cssButton
-    elAttr "div" ("style" =: "color:#A0A0A0; width:195px; display:inline-block;padding-left:5px;" ) $ text "# of clicks:"
+    elAttr "div" ("style" =: "color:#A0A0A0; width:170px; display:inline-block;padding-left:5px;" ) $ text "# of clicks:"
+    -- multiply the number of clicks by 3 ? Collatz Conjecture
+    -- turn the number of clicks into a CSS style ?
     count (btn) >>= ( elAttr "div" ("style" =: "font-family:Helvetica; width:25px; display: inline-block;text-align:right;"). dynText  . fmap (pack . show) )
-    count (btn) >>= ( elAttr "div" ("style" =: "font-family:Helvetica; width:25px; display: inline-block;text-align:right;"). dynText  . fmap (pack . show) )
+    count (btn) >>= ( elAttr "div" ("style" =: "font-family:Helvetica; width:25px; display: inline-block;text-align:right;"). dynText  . fmap (pack . show . (\x -> x + 1) ) )
+    el "div" $ count (btn) >>= (\x -> ( svgAttr cssSvg $ circle ( cssCircle x ) blank ) )
     return ()
-  svgAttr cssSvg $ circle ( cssCircle 5 ) blank
