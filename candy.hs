@@ -15,13 +15,13 @@ svgAttributes = ( "style" =: "width:300px; height:150px; background-color:#F0F0F
 squareAttributes :: Map Text Text
 squareAttributes = fromList [("x", "0"), ("y", "0"), ("width", "10"), ("height", "10"), ("fill", "#F0F0F0")]
 
-svgButton :: DomBuilder t m => Maybe ( Map Text Text ) -> m (Event t ())
-svgButton attr = case attr of
+svgButton :: DomBuilder t m => Maybe ( Map Text Text ) -> m a -> m (Event t ())
+svgButton attr child = case attr of
   Just attributes -> do
-    (e, _) <- element "svg" ( def & initialAttributes .~ mapKeys (AttributeName Nothing) attributes & namespace .~ Just "http://www.w3.org/2000/svg" ) $ blank
+    (e, _) <- element "svg" ( def & initialAttributes .~ mapKeys (AttributeName Nothing) attributes & namespace .~ Just "http://www.w3.org/2000/svg" ) child
     return $ domEvent Click e
   Nothing         -> do
-    (e, _) <- element "svg" def $ blank
+    (e, _) <- element "svg" ( def & namespace .~ Just "http://www.w3.org/2000/svg" ) child
     return $ domEvent Click e
 
 
@@ -29,7 +29,7 @@ main = mainWidget $ do
 
   el "div" $ do
     -- in this monad each computation returns an HTML artifact
-    btn <- svgButton ( Just svgAttributes )
+    btn <- svgButton ( Just svgAttributes ) $ blank
     c   <- count ( btn )
     el "div" $ dynText $ fmap ( pack . show ) $ c
     return ()
