@@ -9,6 +9,7 @@ import Reflex.Dom
 import Data.Map
 import Data.Text (Text, pack)
 import System.Random
+import Control.Monad.Fix
 
 -------------------------------------------------------------------------------
 
@@ -42,10 +43,11 @@ square n child =
     (e, _) <- element "rect" ( def & initialAttributes .~ mapKeys (AttributeName Nothing) attributes & namespace .~ Just "http://www.w3.org/2000/svg" ) child
     return $ domEvent Click e
 
-
---piece = do
---  rec (e, _) <- el' "div" $ display =<< count (domEvent Click e)
---  return domEvent Click e
+-- later, an important discussion on these type constraints (with pictures)
+piece :: ( DomBuilder t m, PostBuild t m, MonadHold t m, MonadFix m )  => m ( Event t () )
+piece = do
+  rec (e, _) <- el' "div" $ display =<< count (domEvent Click e)
+  return ( domEvent Click e )
 
 t :: RandomGen g => g -> (Int, g)
 t = randomR (0, 3 :: Int)
@@ -61,6 +63,7 @@ main = mainWidget $ do
     c   <- count ( btn )
     el "div" $ dynText $ fmap ( pack . show ) $ c
     -- help from IRC
-    rec (e, _) <- elAttr' "div" ( fromList [("style", "background-color:#DEB225; width:12pt;")])  $ display =<< count (domEvent Click e)
+    -- rec (e, _) <- elAttr' "div" ( fromList [("style", "background-color:#DEB225; width:12pt;")])  $ display =<< count (domEvent Click e)
+    piece
     return ()
   return ()
