@@ -34,20 +34,24 @@ svgButton attr child = case attr of
     (e, _) <- element "svg" ( def & namespace .~ Just "http://www.w3.org/2000/svg" ) child
     return $ domEvent Click e
 
-square :: DomBuilder t m => Int -> m a -> m (Event t ())
-square n child =
-  let
-    attributes = squareAttributes ( 0 , 0 ) $ colors !! n
-  in
-    do
-    (e, _) <- element "rect" ( def & initialAttributes .~ mapKeys (AttributeName Nothing) attributes & namespace .~ Just "http://www.w3.org/2000/svg" ) child
-    return $ domEvent Click e
+square :: DomBuilder t m => Text -> m a -> m (Event t ())
+square color child = do
+  (e, _) <- element "rect" ( def & initialAttributes .~ mapKeys (AttributeName Nothing) ( squareAttributes ( 0 , 0 ) color ) & namespace .~ Just "http://www.w3.org/2000/svg" ) child
+  return $ domEvent Click e
 
 -- later, an important discussion on these type constraints (with pictures)
 piece :: ( DomBuilder t m, PostBuild t m, MonadHold t m, MonadFix m )  => m ( Event t () )
 piece = do
   rec (e, _) <- el' "div" $ display =<< count (domEvent Click e)
-  return ( domEvent Click e )
+  return $ domEvent Click e
+
+
+tile :: ( DomBuilder t m, PostBuild t m, MonadHold t m, MonadFix m ) => m ( Event t () )
+tile = do
+  rec let attrs = fmap (\n -> squareAttributes ( 20 , 20 ) $ colors !! ( mod n 2 )) timesPressed
+      (e, _) <- elDynAttrNS' ( Just "http://www.w3.org/2000/svg" ) "rect" attrs blank
+      timesPressed <- count $ domEvent Click e
+  return $ domEvent Click e
 
 t :: RandomGen g => g -> (Int, g)
 t = randomR (0, 3 :: Int)
@@ -59,7 +63,8 @@ main = mainWidget $ do
 
   el "div" $ do
     -- in this monad each computation returns an HTML artifact
-    btn <- svgButton ( Just svgAttributes ) $ ( square n  ) blank
+    btn <- ( svgButton ( Just svgAttributes ) ) $ do
+      ( square $ colors !! n  ) blank >> tile
     c   <- count ( btn )
     el "div" $ dynText $ fmap ( pack . show ) $ c
     -- help from IRC
