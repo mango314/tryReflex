@@ -23,7 +23,7 @@ colors :: [ Text ]
 colors = fmap pack [ "#DEB225", "#EB5044", "#602FFF", "#D5F531" ]
 
 squareAttributes :: (Int, Int) -> Text -> Map Text Text
-squareAttributes ( a, b ) color = fromList [("x", ( pack . show ) a ), ("y", ( pack . show ) a ), ("width", "10"), ("height", "10"), ("fill", color )]
+squareAttributes ( a, b ) color = fromList [("x", ( pack . show ) a ), ("y", ( pack . show ) b ), ("width", "10"), ("height", "10"), ("fill", color )]
 
 svgButton :: DomBuilder t m => Maybe ( Map Text Text ) -> m a -> m (Event t ())
 svgButton attr child = case attr of
@@ -46,9 +46,9 @@ piece = do
   return $ domEvent Click e
 
 
-tile :: ( DomBuilder t m, PostBuild t m, MonadHold t m, MonadFix m ) => m ( Event t () )
-tile = do
-  rec let attrs = fmap (\n -> squareAttributes ( 20 , 20 ) $ colors !! ( mod n 2 )) timesPressed
+tile :: ( DomBuilder t m, PostBuild t m, MonadHold t m, MonadFix m ) => ( Int , Int ) -> m ( Event t () )
+tile x = do
+  rec let attrs = fmap (\n -> squareAttributes x $ colors !! ( mod n 2 )) timesPressed
       (e, _) <- elDynAttrNS' ( Just "http://www.w3.org/2000/svg" ) "rect" attrs blank
       timesPressed <- count $ domEvent Click e
   return $ domEvent Click e
@@ -59,12 +59,29 @@ t = randomR (0, 3 :: Int)
 n :: Int
 n = fst <$> randomR (0, 3 :: Int) $ mkStdGen 42
 
+-- TUTORIAL
+--
+-- > :t sequence
+-- sequence  :: (Traversable t, Monad m) => t (m a) -> m (t a)
+-- > :t sequence_
+-- sequence_ :: (Foldable t   , Monad m) => t (m a) -> m ()
+-- > :t mapM
+-- mapM  :: (Traversable t, Monad m) => (a -> m b) -> t a -> m (t b)
+-- > :t mapM_
+-- mapM_ :: (Foldable t   , Monad m) => (a -> m b) -> t a -> m ()
+--
+-- Prelude Reflex.Dom> :t map
+-- map :: (a -> b) -> [a] -> [b]
+-- Prelude Reflex.Dom> :t fmap
+-- fmap :: Functor f => (a -> b) -> f a -> f b
+
+
 main = mainWidget $ do
 
   el "div" $ do
     -- in this monad each computation returns an HTML artifact
     btn <- ( svgButton ( Just svgAttributes ) ) $ do
-      ( square $ colors !! n  ) blank >> tile
+      ( square $ colors !! n  ) blank >>  sequence_  ( fmap tile $ [ (20 ,  0), (20,  20), (20,  40) ] )
     c   <- count ( btn )
     el "div" $ dynText $ fmap ( pack . show ) $ c
     -- help from IRC
